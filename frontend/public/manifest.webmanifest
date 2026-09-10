@@ -1,0 +1,21 @@
+{
+  "name": "PRISM — Food Safety Early Warning",
+  "short_name": "PRISM",
+  "description": "Report food-safety issues, track your report, and help authorities detect patterns early.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#2547eb",
+  "categories": ["health", "government", "utilities"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Report a food safety issue", "url": "/report" },
+    { "name": "My reports", "url": "/reports" }
+  ]
+}

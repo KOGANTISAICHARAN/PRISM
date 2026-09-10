@@ -1,0 +1,615 @@
+PRISM
+ AI-Powered Food Safety Early-Warning Platform
+ Complete Ideathon Master Guide
+One document for the entire team: problem, users, solution, features, AI, food inspector workflow,
+Evidence Vault, risk engine, clustering, hotspot detection, architecture, database, MVP,
+implementation plan, demo, business model, safety, and judge questions.
+Core idea: PRISM connects citizen reports, AI-assisted analysis, evidence integrity, risk scoring,
+complaint clustering and food-inspector review into one continuous loop.
+Team rule: Build one convincing end-to-end journey instead of many disconnected features.
+
+1. Executive Summary
+PRISM is a citizen-powered food-safety early-warning platform. A citizen can report a possible food-safety issue using a
+photo and simple description. PRISM uses AI to analyze visible signals and structure the complaint, stores supporting
+evidence in an integrity-aware evidence record, calculates risk signals, groups similar complaints, and highlights potential
+hotspots to a food inspector or authorized reviewer.
+The inspector then reviews the evidence, investigates the case, adds inspection evidence, records findings and updates
+the case status. PRISM therefore creates a feedback loop from citizen → intelligence → human investigation → citizen
+status.
+Important positioning: PRISM is a decision-support and reporting platform. AI does not prove
+contamination, declare a business guilty, or replace official food-safety procedures.
+2. The Problem
+Food-safety problems are often discovered after a customer notices an issue, complains, or becomes ill. Ordinary citizens
+may find reporting difficult, may not know which information is useful, and may have little visibility into what happens after
+submission.
+At the same time, individual complaints can remain fragmented. A single report may look minor, while many similar
+reports from the same vendor or area can indicate an emerging pattern.
+Core problem statement: How can we make food-safety reporting simple for ordinary citizens and
+convert scattered reports into early-warning signals that help authorized food-safety teams
+prioritize investigation sooner?
+3. Why Existing Processes Leave a Gap
+The technical blueprint supplied with this project describes three commonly separate tracks: a citizen complaint portal, an
+evidence model that may simply attach files to a ticket, and backend risk-scoring systems that can operate separately
+from the citizen reporting experience.
+Its central observation is that PRISM attempts to fuse these tracks into one loop: the same citizen action can open a case,
+contribute to evidence, update risk signals, and feed complaint clustering and hotspot detection.
+PRISM's opportunity: connect the citizen's real-world narrative and evidence with the intelligence layer used to prioritize
+human review.
+4. The PRISM Solution
+ One-line pitch: “PRISM turns citizen food-safety reports into early-warning signals by combining
+AI-assisted reporting, structured evidence, dynamic risk scoring, complaint clustering, hotspot
+detection and human inspector review.”
+PRISM is designed as three connected experiences:
+Experience
+Purpose
+■ Citizen
+Report a possible issue easily, provide evidence, and track status.
+■ PRISM AI
+Analyze visible evidence, structure the report, cluster similar reports, and produce risk signals.
+■ Food Inspector
+Prioritize cases, review evidence, investigate, add findings, and update status.
+5. Complete End-to-End Architecture
+
+Citizen → Report → AI Analysis → Complaint Assistant → Evidence Vault → Risk Engine →
+Complaint Clustering → Hotspot Detection → Inspector Dashboard → Human Investigation
+→ Status Feedback
+A simple mental model for the team:
+■ Evidence → ■ Understanding → ■ Pattern → ■ Priority → ■ Investigation → ■ Feedback
+6. User 1 — Citizen
+The citizen is the primary MVP user. The interface should be fast enough that someone can create a useful report without
+understanding food-safety terminology.
+Home:
+ Report Food Issue
+ Check Food / Product (optional)
+ My Reports
+Report flow:
+ Take/upload photo or video
+ Describe the issue in normal language
+ Confirm restaurant/vendor
+ Confirm location
+ Confirm food/product
+ Provide incident date/time
+ Upload bill/packaging if available
+ Review and submit
+Citizen promise: PRISM should ask for only the information that is still missing.
+7. AI Complaint Assistant
+The blueprint recommends a guided slot-filling agent, not a free-roaming chatbot. Its job is to fill six required fields and
+then hand a clean structured object to the Review & Submit screen.
+Required field
+Possible source
+vendor_name
+User / OCR of bill
+location
+User / device GPS
+food_item
+User / image analysis
+issue_type
+Image analysis first; user confirms
+incident_datetime
+User
+evidence_available
+User: photo / bill / both / none
+Conversation rule: Run image analysis first. If the image already provides an answer, do not ask the citizen for it again.
+Ask only one or two short questions at a time.
+Example: User says, “I found plastic in my biryani.” PRISM asks where it was purchased and whether a bill is available,
+rather than asking the user to complete a long form.
+
+8. AI Image Analysis
+The vision component should look only for what is visibly present in the uploaded image. Suitable prototype categories
+include foreign objects, mold-like growth, pest evidence, spoilage/discoloration and packaging damage.
+Output
+Example
+detected_issue
+possible_foreign_object
+risk_level
+High
+confidence
+0.91
+explanation
+Visible object appears inconsistent with the food item.
+Critical limitation: A photo cannot prove laboratory contamination. The UI must use language such as “possible,”
+“suspected,” or “reported.”
+9. Evidence Vault
+The Evidence Vault is more than an attachments folder. The supplied blueprint recommends hashing every uploaded file
+on server-side ingestion, keeping evidence records immutable, and maintaining an append-only audit log.
+Ingestion flow:
+Upload → SHA-256 hash → metadata → object storage → evidence record → audit event
+Evidence data
+Purpose
+SHA-256 hash
+Detect later changes to file bytes
+Report ID
+Links evidence to the case
+Uploader
+Records who supplied it
+GPS
+Records available location context
+Upload timestamp
+Records server-side ingestion time
+Capture timestamp
+Optional EXIF timestamp when available
+Audit log
+Records create/view/export/download events
+Access model: Citizens can view but not alter/delete their evidence through the application; authorized reviewers can
+view evidence associated with cases in their jurisdiction. The prototype should not claim to be a complete legal-grade
+digital evidence system.
+10. Dynamic Risk Engine
+PRISM should not declare a restaurant unsafe because of one unverified complaint. Instead, it calculates a triage signal
+from multiple factors.
+Signal
+What it contributes
+Complaint frequency
+How many reports are associated with a vendor or area
+Similarity
+How many reports describe a related issue
+Recent increase
+Whether complaints are rising unusually fast
+Severity
+Whether the reported issue warrants higher priority
+Verification status
+Whether reports have been reviewed/verified
+
+Signal
+What it contributes
+Location pattern
+Whether reports are concentrated geographically
+Example: ABC Restaurant → 14 reports → 9 similar → 8 in the last 7 days → +180% increase → risk score 87/100 →
+HIGH PRIORITY.
+The score is a prioritization signal for human review, not a legal or scientific determination.
+11. Complaint Clustering
+PRISM groups reports that may describe the same or related issue. The prototype can use semantic text embeddings
+plus additional metadata such as vendor, time and location.
+Example:
+ “Bad smell from chicken”
+ “Chicken tasted spoiled”
+ “Food had a strange smell”
+ “Felt unwell after eating there”
+If other signals align, the system can create a possible incident cluster instead of treating the reports as unrelated tickets.
+Output: “Possible incident cluster — 14 related reports.”
+12. Hotspot Detection & Map
+The map converts report activity into geographic signals. For an ideathon, synthetic/demo data can be used, but it must
+be clearly labeled as DEMO DATA.
+Map element
+Meaning
+Green
+Lower observed report activity
+Yellow
+Moderate activity
+Red
+Potential emerging hotspot
+Clicking a hotspot can show report count, establishments involved, issue categories, recent growth, clusters and priority
+cases.
+Important: A red hotspot is a signal for investigation, not proof that every business or person in that area is unsafe.
+13. User 2 — Food Inspector
+The food inspector is a major user of PRISM. The inspector receives the intelligence generated by the citizen and AI
+layers, but retains human responsibility for investigation and decisions.
+Inspector flow:
+Priority queue → Case details → Evidence → Clusters → Hotspot → Investigation → Additional
+evidence → Findings → Status update → Citizen feedback
+14. Inspector Dashboard
+ Dashboard section
+Example
+High priority
+12
+Medium priority
+34
+
+Dashboard section
+Example
+Low priority
+87
+Potential hotspots
+5
+New clusters
+3
+The dashboard should answer three questions immediately:
+ What needs attention first?
+ Where are possible emerging hotspots?
+ Why did PRISM prioritize this case?
+15. Inspector Case View
+ Section
+Information
+Business
+Restaurant/shop/brand, location
+Reports
+Individual and related reports
+Evidence
+Photos, bills, packaging and audit information
+AI assessment
+Possible issue, confidence, explanation
+Risk
+Score and contributing factors
+Cluster
+Similar reports and pattern details
+Investigation
+Inspector notes and findings
+Status
+New, under review, investigation, verified, not verified, actioned, closed
+16. Inspector Investigation Mode
+ Visit establishment
+ Verify relevant licence/details according to applicable process
+ Inspect kitchen hygiene
+ Check storage conditions
+ Check food handling
+ Record observations
+ Upload appropriate inspection evidence
+ Record findings and next step
+The exact regulatory procedure depends on the competent authority. PRISM should support the workflow rather than
+invent regulatory powers.
+17. Inspector Evidence Upload
+The inspector can add new evidence such as inspection photographs, documents and notes. New evidence should be
+created as a new immutable record rather than modifying an existing evidence row.
+The same evidence-integrity principles apply: SHA-256 hash, uploader, timestamp, location where available, and audit
+events.
+
+Why this matters: the evidence chain continues from citizen submission to inspector investigation instead of splitting the
+case into unrelated systems.
+18. Human Verification & Decision
+ AI signal → Inspector review → Investigation → Human decision
+PRISM can recommend that a case deserves attention. It must not automatically declare contamination, guilt, or
+enforcement action.
+If a citizen describes illness symptoms, the assistant should encourage appropriate medical attention and continue
+collecting the report separately; it must not diagnose the user.
+19. Citizen Feedback Loop
+After the authorized reviewer updates the case, the citizen sees a simple status timeline.
+Report #PR-10482
+✓ Submitted
+✓ Evidence received
+✓ Under investigation
+Current status: UNDER INVESTIGATION
+This feedback loop is important because the citizen is not just a data source; they are a user who should understand what
+happened to their report.
+20. Optional Restaurant / Food Business Module
+This should be a secondary or future module, not the core ideathon build.
+ Complaint trends
+ Repeated issue categories
+ Risk indicators
+ Corrective-action checklist
+ Improvement tracking
+ Multi-location analytics
+This module creates a possible B2B SaaS path while keeping the citizen and inspector workflows central.
+21. Optional Product / Packaged Food Check
+A consumer can scan a barcode or package and view available product information. Reliable official sources should be
+used for recalls or alerts in a production system. Demo data can be used during the ideathon if clearly labeled.
+This gives PRISM a recurring consumer utility beyond complaint submission.
+22. Complete Technical Architecture
+ Layer
+Suggested technology
+Frontend
+Next.js + Tailwind CSS, or React + Tailwind
+Backend
+Python FastAPI
+Database
+Supabase / PostgreSQL
+AI
+Multimodal vision + language model
+
+Layer
+Suggested technology
+Embeddings / clustering
+Sentence-transformers + clustering algorithm for prototype
+Maps
+Mapbox or Google Maps
+Storage
+Supabase Storage or S3-compatible object storage
+Authentication
+Supabase Auth
+Hosting
+Vercel for frontend plus suitable backend hosting
+Do not choose technologies just to make the stack look impressive. The goal is a reliable end-to-end prototype.
+23. AI Pipeline
+1. Input: photo + text + optional bill/product information
+2. Extraction: identify vendor, food, issue and key facts
+3. Vision: analyze visible signals
+4. Evidence check: identify available/missing evidence
+5. Risk features: frequency, similarity, recency, severity, location and verification
+6. Clustering: group related reports
+7. Risk scoring: produce triage priority
+8. Dashboard: surface cases, clusters and hotspots
+24. Suggested Database
+ Table
+Core fields
+users
+id, name, contact, role
+reports
+id, user_id, vendor_id, issue_type, description, date, location, status
+vendors
+id, name, address, latitude, longitude
+evidence
+id, report_id, file_url, file_type, sha256_hash, uploaded_by, geo_lat, geo_lng, upload_timestamp
+evidence_audit_log
+id, evidence_id, action, actor, timestamp
+ai_assessments
+report_id, detected_issue, risk_level, confidence, explanation
+clusters
+id, criteria, report_count, created_at
+risk_scores
+vendor/area, score, factors, updated_at
+investigations
+case_id, inspector, notes, findings, status, timestamps
+25. Evidence Vault Technical Rules
+ Hash every uploaded file with SHA-256 server-side before storage processing.
+ Do not edit an evidence row after creation; corrections create a new row.
+ Use object storage with versioning where possible.
+ Maintain an append-only audit log for CREATE, VIEW, EXPORT and DOWNLOAD.
+ Store uploader, GPS and upload timestamp.
+ Retain capture timestamp from EXIF when available.
+ Restrict application-layer deletion rights.
+ Use access control based on user role and case jurisdiction.
+
+26. Complaint Assistant Technical Rules
+ Use guided slot filling, not open-ended autonomous conversation.
+ Run image analysis before asking questions.
+ Never re-ask fields already known.
+ Ask at most one or two short questions per turn.
+ Use possible/suspected/reported language.
+ Never diagnose illness.
+ When all fields are filled, emit structured report data for Review & Submit.
+ Keep the final citizen confirmation step explicit.
+27. Risk Engine — Prototype Formula
+A simple prototype can normalize several signals to 0–100 and combine them with transparent weights. The exact
+weights are a prototype choice and should be tuned with testing; they are not a regulatory standard.
+Component
+Example weight
+Recent complaint volume
+25%
+Similarity / cluster strength
+20%
+Recent growth rate
+20%
+Reported severity
+15%
+Geographic concentration
+10%
+Verification/history signal
+10%
+Example: score = weighted sum of normalized signals. Always show the contributing factors so the inspector can
+understand why a case is high priority.
+28. MVP — What We Actually Build
+ Feature
+Priority
+Citizen reporting
+MUST
+Photo upload
+MUST
+AI image/text assessment
+MUST
+Guided complaint assistant
+MUST
+Evidence Vault
+MUST
+Risk score
+MUST
+Complaint clustering
+MUST
+Hotspot map
+MUST
+Inspector dashboard
+MUST
+Inspector investigation/status
+MUST
+Restaurant dashboard
+FUTURE
+Predictive analytics
+FUTURE
+
+Feature
+Priority
+Product check
+OPTIONAL
+29. Implementation Plan
+ Phase
+Build
+1 — Foundation
+Frontend structure, authentication, database schema
+2 — Citizen reporting
+Report form, photo/evidence upload, location, My Reports
+3 — AI intake
+Vision analysis + guided complaint assistant
+4 — Evidence Vault
+SHA-256 hashing, storage, metadata, audit log
+5 — Intelligence
+Risk score + complaint clustering
+6 — Inspector
+Priority queue, case view, evidence, investigation, status
+7 — Map
+Hotspot aggregation and map visualization
+8 — Integration
+Connect citizen → AI → evidence → risk → inspector → status
+9 — Polish
+UI, testing, error handling, demo data, pitch
+Development principle: get one complete case working before adding advanced features.
+30. Team Division
+ Role
+Responsibility
+Frontend developer
+Citizen app, report screens, inspector UI
+Backend developer
+APIs, database, authentication, report lifecycle
+AI developer
+Vision analysis, structured extraction, assistant
+Data/Intelligence
+Risk score, clustering, hotspot logic
+Maps/UI/Pitch
+Map, charts, design consistency, presentation and demo
+For smaller teams, combine Frontend + Design and Backend + Data.
+31. Demo Data Strategy
+For the ideathon, create a small synthetic dataset containing multiple restaurants, dates, issue types, coordinates, and
+reports. Clearly display “DEMO DATA” in the dashboard.
+Example dataset story:
+ ABC Restaurant has 14 reports.
+ 9 reports are semantically similar.
+ 8 arrived within 7 days.
+ Complaint activity has increased rapidly.
+ Several reports contain photos/bills.
+ PRISM creates a high-priority cluster and hotspot.
+The purpose is to demonstrate the system's logic, not to make unsupported claims about a real business.
+
+32. 3-Minute Winning Demo
+0:00–0:30 — Citizen: “I found a foreign object in my biryani.” Upload image.
+0:30–1:00 — AI: Show possible issue, confidence and priority. Assistant asks only missing questions.
+1:00–1:20 — Evidence: Show report, bill/photo, timestamp and SHA-256 hash.
+1:20–1:50 — Intelligence: Show risk score and matching complaint cluster.
+1:50–2:20 — Inspector: Open high-priority case, evidence and hotspot map.
+2:20–2:45 — Investigation: Add an inspector observation/photo and update status.
+2:45–3:00 — Citizen: Show status update. Finish with the one-line pitch.
+33. Exact Demo Story
+Citizen: “I ordered chicken biryani from ABC Restaurant and found something unusual.”
+PRISM AI: “Possible foreign object detected. Risk: High. Confidence: 91%.”
+Assistant: “Where did you purchase it?” → “Do you have the bill?”
+Evidence Vault: Evidence ID, SHA-256, timestamp, location, report link.
+Risk Engine: “87/100 — High priority.”
+Cluster: “14 related reports; 9 similar.”
+Inspector: “Review case → Start investigation → Add evidence → Under Investigation.”
+Citizen: “My report is now under investigation.”
+34. What Makes PRISM Different?
+ Typical complaint experience
+PRISM
+Individual ticket
+Connected case + intelligence signal
+Manual form-heavy intake
+AI-assisted structured intake
+Photo as attachment
+Integrity-aware evidence record
+Complaints viewed separately
+Semantic complaint clustering
+Backend score hidden from citizen
+Explainable prioritization signals
+Risk and complaint systems disconnected
+One integrated loop
+Authority sees tickets
+Inspector sees priority, evidence, clusters and hotspots
+The strongest differentiator is not simply “AI.” It is the integration of citizen reporting, evidence, pattern detection and
+human inspection in one workflow.
+35. Startup Potential
+PRISM can evolve into a food-safety intelligence platform.
+Customer
+Possible offering
+Consumers
+Free reporting, evidence and safety tools
+Restaurants
+Safety analytics and corrective-action dashboard
+Food chains
+Multi-location monitoring and trend analytics
+
+Customer
+Possible offering
+Institutions / authorities
+Appropriate analytics and workflow partnerships
+Do not promise government adoption or automatic enforcement. Present those as future partnership/integration
+opportunities.
+36. Trust, Privacy & Safety
+ AI assessments are not laboratory confirmation.
+ Do not publicly label businesses unsafe from unverified reports.
+ Use neutral language: reported, possible, suspected, requires review.
+ Minimize collection of personal data.
+ Use role-based access controls.
+ Clearly distinguish demo/synthetic data from real-world data.
+ Do not fabricate official government submissions, inspections or outcomes.
+ Keep citizen evidence and inspector evidence auditable.
+37. Judge Questions & Strong Answers
+Q: Why can't users simply use existing food-safety complaint channels?
+A: They can. PRISM is not trying to replace official channels. It reduces reporting friction, structures evidence and adds
+pattern/risk intelligence so multiple reports can become useful early-warning signals.
+Q: What is innovative?
+A: The integrated loop: AI-assisted intake, evidence integrity, semantic complaint clustering, dynamic risk signals, hotspot
+detection and human inspector review in one system.
+Q: Can AI prove contamination from an image?
+A: No. PRISM only identifies possible visible issues. Confirmation requires appropriate human investigation and, where
+applicable, laboratory or official processes.
+Q: Does AI decide whether a restaurant is guilty?
+A: No. AI produces signals and prioritization. The food inspector or authorized authority performs human review and
+decides the appropriate action.
+Q: Why is the Evidence Vault needed?
+A: It makes evidence more structured and auditable than a simple attachment. Hashes help detect file changes, and audit
+logs record access events.
+Q: Why does the inspector need PRISM?
+A: It brings reports, evidence, clusters, risk factors and hotspots into one prioritized workspace.
+Q: What if the AI is wrong?
+A: The result is explicitly treated as a possible signal. The inspector can review and reject it. Original evidence remains
+available.
+Q: Where does the data come from?
+
+A: The ideathon prototype can use clearly labeled synthetic/demo data. A production deployment would need appropriate
+official integrations, data-sharing arrangements and privacy controls.
+Q: How do you monetize?
+A: Keep core citizen reporting free and offer paid analytics/monitoring to restaurants, food chains and appropriate
+institutional customers.
+Q: Why should people use it if official complaint systems already exist?
+A: PRISM can make the reporting experience easier while adding a layer that existing complaint tickets generally do not
+provide: cross-report pattern detection and risk prioritization.
+38. What NOT to Build
+ Food delivery or ordering
+ Payments
+ Social media
+ A large government ERP
+ Blockchain without a real requirement
+ Claims of laboratory-level AI contamination detection
+ Automatic punishment/enforcement
+ Twenty different dashboards
+ Real government integration without authorization/access
+A polished, working end-to-end MVP is more valuable in an ideathon than a huge unfinished platform.
+39. Final Architecture — One Picture in Words
+ ■ CITIZEN
+↓
+■ Report: photo + text + location
+↓
+■ AI: image analysis + guided complaint assistant
+↓
+■ Evidence Vault: SHA-256 + metadata + audit log
+↓
+■ Intelligence: risk score + semantic clustering
+↓
+■■ Hotspot detection
+↓
+■ Food Inspector: priority queue + case review
+↓
+■ Investigation + additional evidence
+↓
+■ Human decision/status
+↓
+■ Citizen receives status update
+40. Final Project Statement
+
+PRISM is an AI-powered food-safety early-warning platform that helps citizens report
+potential food-safety issues, organizes and protects evidence, detects related complaint
+patterns, calculates risk signals, identifies emerging hotspots, and gives food inspectors a
+prioritized workspace for human investigation.
+PRISM's philosophy is simple: one complaint is information; a pattern of complaints can
+become an early warning.
+41. Final Pitch
+ “Today, a food-safety problem may be reported one complaint at a time. PRISM connects
+those small signals. A citizen takes a photo, AI helps structure the report, evidence is
+preserved, similar complaints are clustered, risk is assessed, and emerging hotspots are
+highlighted for human review. We are not replacing food-safety authorities—we are giving
+them an earlier and clearer signal of where to look.”
+42. Final Build Checklist
+ Citizen can create a report.
+ Photo upload works.
+ AI produces strict structured output.
+ AI assistant asks only missing fields.
+ Review & Submit screen works.
+ Evidence receives SHA-256 hash.
+ Evidence metadata is stored.
+ Evidence access events are logged.
+ Risk score is explainable.
+ Similar complaints form a cluster.
+ Hotspot appears on the map.
+ Inspector can open a priority case.
+ Inspector can view evidence.
+ Inspector can add investigation evidence.
+ Inspector can update status.
+ Citizen can see status.
+ Demo data is labeled DEMO DATA.
+ No screen claims AI proves contamination.
+ No screen claims PRISM performs official enforcement.
+ The entire demo works from start to finish without manual database edits.
+43. Source / Scope Note
+This master guide consolidates the PRISM project direction developed in this conversation and the uploaded technical
+blueprint titled “FoodShield AI — Real-World Benchmark & Build Blueprint.” The uploaded blueprint covers the AI
+Complaint Assistant, Evidence Vault, real-world comparison, differentiation, reference implementation concepts, and a
+complaint-clustering bonus. The final branding in this guide is PRISM.
+
+Where this guide describes future modules, prototype choices, example risk weights, demo numbers, or
+commercialization, those are presented as implementation recommendations rather than claims established by the
+uploaded source.
